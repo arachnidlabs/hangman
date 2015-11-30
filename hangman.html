@@ -26,6 +26,10 @@
 			text-align: center;
 		}
 
+		.section h1, .table th {
+			letter-spacing: 2px;
+		}
+
 		@media print {
 			.section {
 				page-break-inside: avoid;
@@ -34,10 +38,20 @@
 				color: white !important;
 				background: black !important;
 			}
+			.container {
+				page-break-after: always;
+			}
 		}
 	</style>
 </head>
 <body>
+	<div class="container"><div class="row"><div class="col-sm-12">
+		<h1>How to use this book</h1>
+		<p>This book plays Hangman with you. Think of a noun, and the book will attempt to guess the word you're thinking of just like a regular game of hangman - by asking you about letters one at a time.</p>
+		<p>To do this, you need to follow a couple of simple rules. First, think of a noun. On the next page, you'll be shown what section to look up based on the number of letters in your word.</p>
+		<p>From there on, each section will start by guessing a letter. Consult the table in that section to see what page you should turn to based on where that letter appears in your word.</p>
+		<p>If the book guesses your word, it wins! If the book makes a guess, and you don't see an option in the table that matches your word, you win - the book doesn't know the word you're thinking of.</p>
+	</div></div></div>
 	<div class="container"><div class="row"><div class="col-sm-12">
 		<h1>Start here</h1>
 		<p>To start, how long is your word?</p>
