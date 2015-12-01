@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<title>Hangman</title>
+	<style type="text/css">
+		.section {
+			border: 1px solid black;
+			border-top: none;
+		}
+
+		.section-head {
+			border: 1px solid black;
+			margin-top: 1em;
+		}
+
+		.section-id {
+			background: black !important;
+		}
+
+		.section-id h2 {
+			margin: 0;
+			padding: 5px;
+			font-size: 28px;
+			text-align: center;
+		}
+
+		.section-id a {
+			color: white !important;
+		}
+
+		.section-pattern {
+			font-size: 28px;
+			font-weight: bold;
+		}
+
+		.section-pattern, .table th.template {
+			letter-spacing: 2px;
+		}
+
+		.section-guess {
+			font-size: 22px;
+			text-align: right;
+			vertical-align: middle;
+		}
+
+		.template {
+			width: 12%;
+		}
+
+		.step {
+			width: 21%;
+		}
+
+		.section table {
+			margin-top: 0.5em;
+		}
+
+		@media print {
+			.section-group {
+				page-break-inside: avoid;
+			}
+			.section h1 a {
+				color: white !important;
+				background: black !important;
+			}
+			.container {
+				page-break-after: always;
+			}
+			* {
+				-webkit-print-color-adjust: exact;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="container"><div class="row"><div class="col-sm-12">
+		<h1>How to use this book</h1>
+		<p>This book plays Hangman with you. It knows about 10,000 english nouns, and will attempt to guess the
+			word you're thinking of.</p>
+		<p>Start by thinking of a noun. It may help to take a piece of paper and draw a series of lines, one for each letter. Turning to the next page, look up the section corresponding to the number of letters in your word, and turn to that section.</p>
+		<p>Each section starts with the book's guess, followed by a table. Each entry in that table contains one possible outcome of the guess that the book knows of. If the book guessed a letter that is in your word, write that letter in all the places it appears in your word, on your piece of paper. If the letter isn't in your word, turn to the section number provided.</p>
+		<p>Otherwise, compare the entries in the table to your piece of paper. If you see a matching entry, follow the instructions on the right; usually this means turning to another section and repeating the process for another letter; sometimes the book will outright guess your whole word. If the book guesses your word, it wins!</p>
+		<p>If nothing in the table matches your word so far, you've thought of a word that the book doesn't know about - you win!</p>
+	</div></div></div>
+	<div class="container"><div class="row"><div class="col-sm-12">
+		<h1>Start here</h1>
+		<p>To start, how long is your word?</p>
+		<table class="table">
+			<tr><th>If your word has...</th><th>go to section</th></tr>
+			{% for l, idx in lengths %}
+				<tr><td>{{l}} letters</td><td><a href="#{{idx}}">{{idx}}</a></td></tr>
+			{% endfor %}
+		</table>
+	</div></div></div>
+	<div class="container">
+		{% for section in sections %}
+			{% set columns = 2 if section.pattern|length > 7 else 3 %}
+			{% for group in section.entries|batch(16 * columns) %}
+				<div class="section-group">
+					<div class="row section-head">
+						<div class="col-xs-2 section-id"><h2><a name="{{section.id}}">{{section.id}}</a></h2></div>
+						<div class="col-xs-5 section-pattern">{{section.pattern}}</div>
+						<div class="col-xs-5 section-guess">
+							{% if section.guess %}Guess: {{section.guess}}{% endif %}
+						</div>
+					</div>
+					<div class="row section-body">
+						<div class="col-xs-12 section">
+							<table class="table table-condensed">
+								{% for row in group|batch(columns) %}
+									<tr>
+										{% for entry in row %}
+											{% if entry %}
+												<th class="template">
+													{% if entry.pattern %}
+														{{entry.pattern}}
+													{% else %}
+														No '{{section.guess}}'
+													{% endif %}
+												</th>
+												{% if entry.pattern and '_' not in entry.pattern %}
+													<td class="step">I win!</td>
+												{% elif entry.is_leaf %}
+													<td class="step">I guess {{entry.value}}!</td>
+												{% else %}
+													<td class="step">go to <b><a href="#{{entry.value}}">#{{entry.value}}</a></b></td>
+												{% endif %}
+											{% else %}
+												<th class="template"></th><td class="step"></td>
+											{% endif %}
+										{% endfor %}
+									</tr>
+								{% endfor %}
+							</table>
+						</div>
+					</div>
+					</div>
+				{% endfor %}
+		{% endfor %}
+	</div></div>
+</body>
+</html>
