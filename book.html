@@ -99,7 +99,7 @@
 			{% for group in section.entries|batch(16 * columns) %}
 				<div class="section-group">
 					<div class="row section-head">
-						<div class="col-xs-2 section-id"><h2><a name="{{section.id}}">{{section.id}}</a></h2></div>
+						<div class="col-xs-2 section-id"><h2><a name="{{section.id}}">{{section.id}} ({{section.wrong}})</a></h2></div>
 						<div class="col-xs-5 section-pattern">{{section.pattern}}</div>
 						<div class="col-xs-5 section-guess">
 							{% if section.guess %}Guess: {{section.guess}}{% endif %}

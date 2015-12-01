@@ -8,7 +8,7 @@ import random
 
 words = [
     (word.decode('utf-8').strip().lower(), int(count)) 
-    for word, count in csv.reader(open('20knouns-2.txt'), delimiter='\t')][:10000]
+    for word, count in csv.reader(open('20knouns.txt'), delimiter='\t')][:10000]
 words_by_length = defaultdict(set)
 for word, count in words:
     words_by_length[len(word)].add((word, count))
@@ -16,10 +16,10 @@ alphabet = set("abcdefghijklmnopqrstuvwxyz")
 
 
 def make_pattern(word, ch):
-    return ''.join(word[i] if word[i] == ch or word[i] < 'a' or word[i] > 'z' else u'_' for i in range(len(word)))
+    return u''.join(word[i] if word[i] == ch or word[i] < 'a' or word[i] > 'z' else u'_' for i in range(len(word)))
 
 def combine_patterns(first, second):
-    return ''.join(b if a == u'_' else a for a, b in zip(first, second))
+    return u''.join(b if a == u'_' else a for a, b in zip(first, second))
 
 def group_by_patterns(words, ch):
     groups = defaultdict(set)
@@ -29,19 +29,20 @@ def group_by_patterns(words, ch):
 
 
 NodeKey = namedtuple('NodeKey', ['num_guesses', 'pattern'])
-Node = namedtuple('Node', ['guess', 'patterns'])
+Node = namedtuple('Node', ['guess', 'wrong', 'patterns'])
 Entry = namedtuple('Entry', ['pattern', 'is_leaf', 'value'])
-Section = namedtuple('Section', ['id', 'pattern', 'guess', 'entries'])
+Section = namedtuple('Section', ['id', 'pattern', 'wrong', 'guess', 'entries'])
 
 
 def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
     """Produces a graph of hangman guesses.
 
-    graph is a dict of the form (num_guesses, pattern): (guess, patterns)
+    graph is a dict of the form (num_guesses, pattern): (guess, wrong, patterns)
     Where:
       num_guesses: Is the total number of guesses so far
       pattern: Is the pattern of discovered letters so far (with underscores standing for unknown letters)unknown
       guess: Is the next character to guess
+      wrong: The number of wrong guesses so far
       patterns: Is a list of patterns that can result from this guess with the given dictionary.
 
     The graph is constructed so as to minimise the size of the largest group of words with a single output
@@ -50,12 +51,12 @@ def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
     if u'_' not in pattern:
         return 0
     elif len(words) == 1:
-        graph[NodeKey(guesses, pattern)] = Node('', words)
+        graph[NodeKey(guesses, pattern)] = Node('', wrong, words)
         return 0
-    elif wrong == 5:
+    elif wrong == 6:
         logging.warn("Pruning words %r due to too many wrong guesses", words)
         # Pick one at random as our last guess
-        graph[NodeKey(guesses, pattern)] = Node('', list(words)[0])
+        graph[NodeKey(guesses, pattern)] = Node('', wrong, [list(words)[0]])
         return len(words) - 1
     # Find candidate guesses
     best_guess = None
@@ -70,16 +71,17 @@ def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
             best_guess = guess
     # Add the best guess to the graph and recurse
     default_size, biggest_subgroup, ch, subgroups = best_guess
-    graph[NodeKey(guesses, pattern)] = Node(ch, [combine_patterns(pattern, k) for k in subgroups.keys()])
+    graph[NodeKey(guesses, pattern)] = Node(ch, wrong, [combine_patterns(pattern, k) for k in subgroups.keys()])
     pruned = 0
     for subpattern, subwords in subgroups.iteritems():
+        new_pattern = combine_patterns(pattern, subpattern)
         pruned += build_graph(
             graph,
-            combine_patterns(pattern, subpattern),
+            new_pattern,
             list(sorted(subwords)),
             letters - set([ch]),
             guesses + 1,
-            wrong + 1 if subpattern == pattern else wrong)
+            (wrong + 1) if new_pattern == pattern else wrong)
     return pruned
 
 
@@ -105,10 +107,11 @@ def produce_book_data(graph):
 
     The returned structure is a list, with one entry for each section in the final book.
     Each element in the list is a named tuple called Section, of this form:
-      (id, pattern, guess, default, entries)
+      (id, pattern, wrong, guess, default, entries)
     Where:
       id: Is the number of this section
       pattern: Is the word thus far (eg, 'f_re__uck')
+      wrong: The number of wrong guesses so far
       guess: Is this section's guessed letter. May be '' if this is a leaf section.
       entries: Is a list of entry tuples.
 
@@ -146,7 +149,7 @@ def produce_book_data(graph):
             else:
                 entries.append(Entry(subpattern, *get_entry_value(graph, node_map, subnode_key)))
         entries.sort()
-        sections.append(Section(idx, k.pattern, v.guess, entries))
+        sections.append(Section(idx, k.pattern, v.wrong, v.guess, entries))
 
     # Generate a map from length to initial section
     length_map = [(l, node_map[NodeKey(0, u'_'*l)]) for l in set(len(k.pattern) for k in graph.keys())]
