@@ -2,14 +2,15 @@ from collections import defaultdict, namedtuple
 import csv
 import jinja2
 import logging
+import math
 import os
 import random
 
 
-words = defaultdict(int)
+word_ranks = defaultdict(int)
 for word, count in csv.reader(open('20knouns.txt'), delimiter='\t'):
-    words[word.decode('utf-8').strip().lower()] += int(count)
-words = [word for word, count in sorted(words.iteritems(), key=lambda (w,c): c, reverse=True)][:10000]
+    word_ranks[word.decode('utf-8').strip().lower()] += int(count)
+words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)][:10000]
 words_by_length = defaultdict(list)
 for word in words:
     words_by_length[len(word)].append(word)
@@ -35,6 +36,14 @@ Entry = namedtuple('Entry', ['pattern', 'is_leaf', 'value'])
 Section = namedtuple('Section', ['id', 'pattern', 'wrong', 'guess', 'entries'])
 
 
+def score_grouping(subgroups, pattern):
+    return (
+#        len(subgroups.get(pattern, ())),
+        sum(word_ranks[word] for word in subgroups.get(pattern, ())),
+        max(len(v) for v in subgroups.values())
+    )
+
+
 def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
     """Produces a graph of hangman guesses.
 
@@ -50,30 +59,28 @@ def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
     pattern at each node in the tree.
     """
     if u'_' not in pattern:
-        return 0
+        return []
     elif wrong == 6:
-        logging.warn("Pruning words %r due to too many wrong guesses", words)
         # Pick one at random as our last guess
         graph[NodeKey(guesses, pattern)] = Node('', wrong, [])
-        return len(words)
+        return words
     elif len(words) == 1:
         graph[NodeKey(guesses, pattern)] = Node('', wrong, words)
-        return 0
+        return []
     # Find candidate guesses
     best_guess = None
     for ch in letters:
         subgroups = group_by_patterns(words, ch)
         guess = (
-            len(subgroups.get(pattern, ())),
-            max(len(v) for v in subgroups.values()),
+            score_grouping(subgroups, pattern),
             ch,
             subgroups)
         if not best_guess or guess < best_guess:
             best_guess = guess
     # Add the best guess to the graph and recurse
-    default_size, biggest_subgroup, ch, subgroups = best_guess
+    score, ch, subgroups = best_guess
     graph[NodeKey(guesses, pattern)] = Node(ch, wrong, [combine_patterns(pattern, k) for k in subgroups.keys()])
-    pruned = 0
+    pruned = []
     for subpattern, subwords in subgroups.iteritems():
         new_pattern = combine_patterns(pattern, subpattern)
         pruned += build_graph(
@@ -88,7 +95,7 @@ def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
 
 def build_complete_graph(words):
     graph = {}
-    pruned = 0
+    pruned = []
     for length, words in words_by_length.iteritems():
         pruned += build_graph(graph, u'_' * length, words, alphabet)
     return graph, pruned
@@ -166,7 +173,7 @@ def book():
     template = env.get_template("book.html")
     graph, pruned = build_complete_graph(words)
     if pruned:
-        logging.warn("Pruned %d words due to too many wrong guesses", pruned)
+        logging.warn("Pruned %d words due to too many wrong guesses: %r", len(pruned), pruned)
     sections, lengths = produce_book_data(graph)
     print template.render({
         'lengths': lengths,
