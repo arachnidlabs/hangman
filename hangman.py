@@ -6,12 +6,13 @@ import os
 import random
 
 
-words = [
-    (word.decode('utf-8').strip().lower(), int(count)) 
-    for word, count in csv.reader(open('20knouns.txt'), delimiter='\t')][:10000]
-words_by_length = defaultdict(set)
-for word, count in words:
-    words_by_length[len(word)].add((word, count))
+words = defaultdict(int)
+for word, count in csv.reader(open('20knouns.txt'), delimiter='\t'):
+    words[word.decode('utf-8').strip().lower()] += int(count)
+words = [word for word, count in sorted(words.iteritems(), key=lambda (w,c): c, reverse=True)][:10000]
+words_by_length = defaultdict(list)
+for word in words:
+    words_by_length[len(word)].append(word)
 alphabet = set("abcdefghijklmnopqrstuvwxyz")
 
 
@@ -22,9 +23,9 @@ def combine_patterns(first, second):
     return u''.join(b if a == u'_' else a for a, b in zip(first, second))
 
 def group_by_patterns(words, ch):
-    groups = defaultdict(set)
+    groups = defaultdict(list)
     for word in words:
-        groups[make_pattern(word, ch)].add(word)
+        groups[make_pattern(word, ch)].append(word)
     return groups
 
 
@@ -50,14 +51,14 @@ def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
     """
     if u'_' not in pattern:
         return 0
-    elif len(words) == 1:
-        graph[NodeKey(guesses, pattern)] = Node('', wrong, words)
-        return 0
     elif wrong == 6:
         logging.warn("Pruning words %r due to too many wrong guesses", words)
         # Pick one at random as our last guess
-        graph[NodeKey(guesses, pattern)] = Node('', wrong, [list(words)[0]])
-        return len(words) - 1
+        graph[NodeKey(guesses, pattern)] = Node('', wrong, [])
+        return len(words)
+    elif len(words) == 1:
+        graph[NodeKey(guesses, pattern)] = Node('', wrong, words)
+        return 0
     # Find candidate guesses
     best_guess = None
     for ch in letters:
@@ -78,7 +79,7 @@ def build_graph(graph, pattern, words, letters, guesses=0, wrong=0):
         pruned += build_graph(
             graph,
             new_pattern,
-            list(sorted(subwords)),
+            subwords,
             letters - set([ch]),
             guesses + 1,
             (wrong + 1) if new_pattern == pattern else wrong)
@@ -89,7 +90,7 @@ def build_complete_graph(words):
     graph = {}
     pruned = 0
     for length, words in words_by_length.iteritems():
-        pruned += build_graph(graph, u'_' * length, [word for word, count in words], alphabet)
+        pruned += build_graph(graph, u'_' * length, words, alphabet)
     return graph, pruned
 
 
@@ -97,7 +98,12 @@ def get_entry_value(graph, node_map, subnode_key):
     if not subnode_key:
         return True, None
     elif graph[subnode_key].guess == '':
-        return True, tuple(graph[subnode_key].patterns)[0]
+        if not graph[subnode_key].patterns:
+            # Player wins
+            return True, None
+        else:
+            # We make a guess
+            return True, graph[subnode_key].patterns[0]
     else:
         return False, node_map[subnode_key]
 
