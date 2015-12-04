@@ -10,7 +10,7 @@ import random
 word_ranks = defaultdict(int)
 for word, count in csv.reader(open('20knouns.txt'), delimiter='\t'):
     word_ranks[word.decode('utf-8').strip().lower()] += int(count)
-words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)][:10000]
+words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)][:5000]
 words_by_length = defaultdict(list)
 for word in words:
     words_by_length[len(word)].append(word)
@@ -137,10 +137,8 @@ def produce_book_data(graph):
     """
     # Filter out nodes that don't contain a guess (Eg, are leaf nodes) unless they're also the first guess
     nodes = [(k, v) for k, v in graph.items() if v.guess != '' or k.num_guesses == 0]
-    # Start by shuffling the nodes randomly
-    random.shuffle(nodes)
-    # Then sort by number of guesses, so we always proceed forwards through the book
-    nodes.sort(key=lambda (k, v): (k.num_guesses, len(k.pattern)))
+    # Sort by number of characters, then guesses, so we always proceed forwards through the book
+    nodes.sort(key=lambda (k, v): (len(k.pattern), k.num_guesses, k.pattern))
 
     # Number the nodes
     nodes = list(enumerate(nodes, 1))

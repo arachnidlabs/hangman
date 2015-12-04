@@ -1,75 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<title>Hangman</title>
 	<style type="text/css">
-		.section {
-			border: 1px solid black;
-			border-top: none;
+		body {
+			font-family: "Times New Roman", serif;
+			font-size: 10pt;
+			line-height: 1.2;
 		}
 
-		.section-head {
-			border: 1px solid black;
-			margin-top: 1em;
+		h1 {
+			font-size: 36px;
+			margin-top: 20px;
+			margin-bottom: 10px;
+		}
+
+		p {
+			margin: 0 0 10px;
+		}
+
+		table {
+			width: 100%;
+			max-width: 100%;
+			border-spacing: 0;
+			border-collapse: collapse;
+		}
+
+		th, td {
+			padding: 5px;
+			vertical-align: top;
+			text-align: left;
+			border-bottom: 1px solid #ccc;
+		}
+
+		thead th {
+			border-bottom: 2px solid black;			
+		}
+
+		table table td {	
+			border-bottom: none;
+		}
+
+		.section {
+			margin-bottom: 2em;
+		}
+
+		.section thead th {
+			padding: 0 !important;
+		}
+
+		.section th table {
+			width: 100%;
 		}
 
 		.section-id {
 			background: black !important;
+			width: 6em;
+			padding: 0;
+			vertical-align: middle;
 		}
 
 		.section-id h2 {
 			margin: 0;
-			padding: 5px;
-			font-size: 28px;
+			padding: 0px;
+			font-size: 22px;
 			text-align: center;
+			vertical-align: middle;
 		}
 
 		.section-id a {
 			color: white !important;
+			width: 20%;
 		}
 
 		.section-pattern {
-			font-size: 28px;
+			padding-left: 10px;
+			font-size: 22px;
 			font-weight: bold;
 		}
 
-		.section-pattern, .table th.template {
-			letter-spacing: 2px;
-		}
-
-		.section-guess {
-			font-size: 22px;
-			text-align: right;
+		.section-pattern img {
+			height: 32px;
+			width: 32px;
+			padding-right: 10px;
 			vertical-align: middle;
 		}
 
-		.template {
-			width: 12%;
+		.guess {
+			padding-bottom: 1.5em;
 		}
 
-		.step {
+		.section-body th {
+			width: 12%;
+			white-space: nowrap;
+		}
+
+		.section-body td {
 			width: 21%;
 		}
 
-		.section table {
-			margin-top: 0.5em;
+		.chapter {
+			margin-bottom: 2em;
+		}
+
+		@media screen {
+			padding: 2em;
+		}
+
+		.guess-text {
+			font-style: italic;
+		}
+
+		.pattern-text {
+			font-family: monospace;
+			letter-spacing: 0.2em;
+			vertical-align: bottom;
+		}
+
+		.title, .pubnotes {
+			text-align: center;
+		}
+
+		.title h1 {
+			padding-top: 2em;
+			font-size: 48pt;
+		}
+
+		.title h2 {
+			margin: 0;
+			padding: 0;
 		}
 
 		@media print {
 			@page {
 				size: 6in 9in;
+				padding: 0;
+				margin: 0.25in;
 			}
-			.section-group {
+
+			@page :left {
+				margin-right: 0.875in;
+			}
+
+			@page :right {
+				margin-left: 0.875in;
+			}
+
+			a {
+				text-decoration: none;
+				color: inherit;
+			}
+
+			body {
+				margin: 0;
+				padding: 0;
+			}
+
+			.section {
 				page-break-inside: avoid;
 			}
-			.section h1 a {
-				color: white !important;
+
+			table tr td.section-id {
 				background: black !important;
 			}
-			.container {
+
+			.section-id a {
+				color: white !important;
+			}
+
+			.chapter {
 				page-break-after: always;
 			}
+
 			* {
 				-webkit-print-color-adjust: exact;
 			}
@@ -77,74 +180,100 @@
 	</style>
 </head>
 <body>
-	<div class="container"><div class="row"><div class="col-sm-12">
+	<div class="chapter title">
+		<h1>Dead Tree</h1>
+
+		<h2>Nick Johnson</h2>
+		<h2>Perry Lorier</h2>
+	</div>
+	<div class="chapter pubnotes">
+		<p>This edition printed in 2015.</p>
+		<p>A candlepower algorithm publication.</p>
+		<p>Copyright 2015, Nick Johnson & Perry Lorier.</p>
+		<p>This work is licensed under a Creative Commons Attribution [4.0] license. For more details, see http://creativecommons.org/licenses/by/4.0/. Source materials can be found at https://github.com/arachnidlabs/hangman/.</p>
+		<p>This work contains content from the Google Books n-grams corpus, which is Copyright 2012, Google, and licensed under the Creative Commons Attribution 3.0 Unported License.</p>
+		<p>ISBN: TBD</p>
+		<p>Cover Illustration: Shweta Mahajan</p>
+		<p>Cover Design: </p>
+	</div>
+	<div class="chapter">
 		<h1>How to use this book</h1>
-		<p>This book plays Hangman with you. It knows about 10,000 english nouns, and will attempt to guess the
-			word you're thinking of.</p>
-		<p>Start by thinking of a noun. It may help to take a piece of paper and draw a series of lines, one for each letter. Turning to the next page, look up the section corresponding to the number of letters in your word, and turn to that section.</p>
-		<p>Each section starts with the book's guess, followed by a table. Each entry in that table contains one possible outcome of the guess that the book knows of. If the book guessed a letter that is in your word, write that letter in all the places it appears in your word, on your piece of paper. If the letter isn't in your word, turn to the section number provided.</p>
-		<p>Otherwise, compare the entries in the table to your piece of paper. If you see a matching entry, follow the instructions on the right; usually this means turning to another section and repeating the process for another letter; sometimes the book will outright guess your whole word. If the book guesses your word, it wins!</p>
-		<p>If nothing in the table matches your word so far, you've thought of a word that the book doesn't know about - you win!</p>
-	</div></div></div>
-	<div class="container"><div class="row"><div class="col-sm-12">
+		<p>This book plays Hangman with you. It knows about 10,000 english nouns, and will attempt to guess the word you're thinking of, the same as in a regular game of Hangman.</p>
+		<p>To use this book, you need to follow a simple procedure. In effect, your brain is a computer, and this book is the program. It's very simple to do, and we'll show you how.</p>
+		<p>Start by thinking of a noun. It may help to take a piece of paper and draw a series of lines, one for each letter, just as you would in regular Hangman.</p>
+		<p>The first thing you need to tell the book is how many letters are in your word. Turning to the page titled "Start here", look down the table until you find the number of letters in your word. Turn to the section listed on the right side of the table.</p>
+		<p>Each section starts with the letter the book is guessing. If the book guessed a letter that is in your word, fill in that letter on your piece of paper in all the places it belongs.</p>
+		<p>Next, look at the table in your section. Each entry in the table shows one possible outcome of the book's guess. Compare the entries in the table to your piece of paper. If you see a matching entry, follow the instructions on the right; usually this means turning to another section and repeating the process for another letter; sometimes the book will outright guess your whole word. If the book guesses your word, it wins!</p>
+		<p>If the book guessed a letter that's not in your word, turn to the section listed at the beginning of the table. For example, if the book guessed "e", turn to the section labelled "no 'e'" in the table.</p>
+		<p>If the table doesn't contain the entry you need, you've thought of a word that the book doesn't know about - you win!</p>
+	</div>
+	<div class="chapter">
+		<h1>How this book was written</h1>
+		<p>If you'd just like to play Hangman, feel free to skip this section. If you'd like to know how a book like this gets constructed, read on.</p>
+		<p>This book was written largely by a computer, following an algorithm of its own. Rather than telling it how to play one game of Hangman, this algorithm told it how to make a book that plays Hangman - a program that makes other programs. This isn't as complicated as it might first seem, though it does require a few important principles from computer science, most notably Recursion.</p>
+		<p>Recursion is the process of breaking up a big task into smaller parts, and then breaking those parts up into still smaller ones, and so forth. For example, think of the way mail for a large city is handled: the central post office sends mail to regional post offices. They break it down further for individual postmen. When you get mail, you sort it one final time to hand it to the person it's addressed to. Each step in the process performs a small part of the work of getting the whole job done. Recursion works in a similar way.</p>
+		<p>When building this book, the big task is "guess any of these ten thousand words". The small individual tasks we want to break it down into are guessing individual letters.</p>
+	</div>
+	<div class="chapter">
 		<h1>Start here</h1>
 		<p>To start, how long is your word?</p>
-		<table class="table">
+		<table>
 			<tr><th>If your word has...</th><th>go to section</th></tr>
 			{% for l, idx in lengths %}
-				<tr><td>{{l}} letters</td><td><a href="#{{idx}}">{{idx}}</a></td></tr>
+				<tr><td>{{l}} letters</td><td><a href="#{{idx}}">§{{idx}}</a></td></tr>
 			{% endfor %}
 		</table>
-	</div></div></div>
-	<div class="container">
+	</div>
+	<div class="chapter">
 		{% for section in sections %}
-			{% set columns = 2 if section.pattern|length > 7 else 3 %}
-			{% for group in section.entries|batch(16 * columns) %}
-				<div class="section-group">
-					<div class="row section-head">
-						<div class="col-xs-2 section-id"><h2><a name="{{section.id}}">{{section.id}}</a></h2></div>
-						<div class="col-xs-5 section-pattern">{{section.pattern}}</div>
-						<div class="col-xs-5 section-guess">
-							{% if section.guess %}Guess: {{section.guess}}{% endif %}
-						</div>
-					</div>
-					<div class="row section-body">
-						<div class="col-xs-12 section">
-							<table class="table table-condensed">
-								{% for row in group|batch(columns) %}
-									<tr>
-										{% for entry in row %}
-											{% if entry %}
-												<th class="template">
-													{% if entry.pattern %}
-														{{entry.pattern}}
-													{% else %}
-														No '{{section.guess}}'
-													{% endif %}
-												</th>
-												{% if entry.pattern and '_' not in entry.pattern %}
-													<td class="step">I win!</td>
-												{% elif entry.is_leaf %}
-													{% if entry.value %}
-														<td class="step">I guess {{entry.value}}!</td>
-													{% else %}
-														<td class="step">You win!</td>
-													{% endif %}
-												{% else %}
-													<td class="step">go to <b><a href="#{{entry.value}}">#{{entry.value}}</a></b></td>
-												{% endif %}
-											{% else %}
-												<th class="template"></th><td class="step"></td>
-											{% endif %}
-										{% endfor %}
-									</tr>
-								{% endfor %}
-							</table>
-						</div>
-					</div>
-					</div>
-				{% endfor %}
+			{% if section.pattern|length > 12 or section.entries|length == 1 %}
+				{% set columns = 1 %}
+			{% elif section.pattern|length > 7 or section.entries|length < 3 %}
+				{% set columns = 2 %}
+			{% else %}
+				{% set columns = 3 %}
+			{% endif %}
+			<table class="section">
+				<thead><tr><th colspan="{{columns*2}}">
+					<table><tr>
+						<td class="section-id"><h2><a name="{{section.id}}">{{section.id}}</a></h2></td>
+						<td class="section-pattern">							<img src="hangman{{section.wrong}}.svg" type="image/svg+xml">
+ <span class="pattern-text">{{section.pattern}}</span></td>
+					</tr></table>
+				</th></tr></thead>
+				<tbody class="section-body">
+					<tr><td class="guess" colspan="{{columns*2}}">I guess {{section.guess}}.</td></tr>
+					{% for row in section.entries|batch(columns, '') %}
+						<tr>
+							{% for entry in row %}
+								{% if entry %}
+									<th>
+										{% if entry.pattern %}
+											<span class="pattern-text">{{entry.pattern}}</span>
+										{% else %}
+											No '{{section.guess}}'
+										{% endif %}
+									</th>
+									{% if entry.pattern and '_' not in entry.pattern %}
+										<td>I win!</td>
+									{% elif entry.is_leaf %}
+										{% if entry.value %}
+											<td>I guess <span class="guess-text">{{entry.value}}</span>!</td>
+										{% else %}
+											<td>You win!</td>
+										{% endif %}
+									{% else %}
+										<td>go to <b><a href="#{{entry.value}}">§{{entry.value}}</a></b></td>
+									{% endif %}
+								{% else %}
+									<th></th><td></td>
+								{% endif %}
+							{% endfor %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
 		{% endfor %}
-	</div></div>
+	</div>
 </body>
 </html>
