@@ -198,7 +198,7 @@
 	</div>
 	<div class="chapter">
 		<h1>How to use this book</h1>
-		<p>This book plays Hangman with you. It knows about 10,000 english nouns, and will attempt to guess the word you're thinking of, the same as in a regular game of Hangman.</p>
+		<p>This book plays Hangman with you. It knows over 5,000 english words, and will attempt to guess the word you're thinking of, the same as in a regular game of Hangman.</p>
 		<p>To use this book, you need to follow a simple procedure. In effect, your brain is a computer, and this book is the program. It's very simple to do, and we'll show you how.</p>
 		<p>Start by thinking of a noun. It may help to take a piece of paper and draw a series of lines, one for each letter, just as you would in regular Hangman.</p>
 		<p>The first thing you need to tell the book is how many letters are in your word. Turning to the page titled "Start here", look down the table until you find the number of letters in your word. Turn to the section listed on the right side of the table.</p>
@@ -210,9 +210,17 @@
 	<div class="chapter">
 		<h1>How this book was written</h1>
 		<p>If you'd just like to play Hangman, feel free to skip this section. If you'd like to know how a book like this gets constructed, read on.</p>
-		<p>This book was written largely by a computer, following an algorithm of its own. Rather than telling it how to play one game of Hangman, this algorithm told it how to make a book that plays Hangman - a program that makes other programs. This isn't as complicated as it might first seem, though it does require a few important principles from computer science, most notably Recursion.</p>
+		<p>This book was written largely by a computer, following an algorithm of its own. Rather than telling it how to play one game of Hangman, this algorithm told it how to make a book that plays Hangman - a program that makes other programs. This isn't as complicated as it might first seem.</p>
+		<p>First, we need a list of words that people might guess in a game of hangman. Google has produced a very large list of words (and pairs of words, and triples of words, and so forth) from the results of scanning a very large number of books, and they've helpfully categorised them by when the book was published. Language changes over time, and someone from 1820 would probably pick different words than someone today, so this is particularly helpful.</p>
+		<p>So, the first step is to filter the list down to words we think people are likely to guess. For this book, we've taken words only from books published since 1980. Since people mostly think of nouns - someone's more likely to make you guess "elephant" than "contrariness" - and we want the best odds possible, we've tried to only include nouns, too, though the odd verb, adjective or adverb does slip in here and there.</p>
+		<p>Next, we need to figure out what to guess. If you've looked through the book, you'll notice that each section points to a number of follow-on sections, and they always go forwards; you never have to turn to an earlier page. This type of structure is called a tree in computer science, because of the way it branches out. The most common way to build a tree - and the approach we use here - is called recursion.</p>
 		<p>Recursion is the process of breaking up a big task into smaller parts, and then breaking those parts up into still smaller ones, and so forth. For example, think of the way mail for a large city is handled: the central post office sends mail to regional post offices. They break it down further for individual postmen. When you get mail, you sort it one final time to hand it to the person it's addressed to. Each step in the process performs a small part of the work of getting the whole job done. Recursion works in a similar way.</p>
-		<p>When building this book, the big task is "guess any of these ten thousand words". The small individual tasks we want to break it down into are guessing individual letters.</p>
+		<p>When building this book, the big task is "guess any of these ten thousand words". The small individual tasks we want to break it down into are guessing individual letters. Here's how we go about breaking the big task up into the smaller tasks.</p>
+		<p>First, start with the entire dictionary, all 5,000 plus words. Figure out which letter appears in the most words; usually that's e, t, or a. Let's assume it was 'e'.</p>
+		<p>Next, take each word and pick out just the 'e's to make a pattern. So, 'eel' becomes 'ee_', and 'flame' becomes '____a'. If the word doesn't contain any 'e's, the pattern is all blanks - so 'cabin' is '_____'. Group each word by the pattern it makes, so both 'smile' and 'flame' are grouped under '____e'.</p>
+		<p>Now we've got enough information to build section 1: we know what letter to guess, and we know the groups that the words in our dictionary form, which make up the entries in the table.</p>
+		<p>To generate the next set of sections, we use recursion: we take each group of words we identified in the previous step, and repeat the whole process all over again: pick a letter to guess, and group the words again based on that letter. This process repeats over and over for each group, sub-group, sub-sub-group, and so on, until we've processed the entire set of words into sections. Print and bind it into a book, and you're done!</p>
+		<p>If you'd like to experiement with this yourself, the source code and word lists we used to generate this book are available online, at https://github.com/arachnidlabs/hangman/. Enjoy!</p>
 	</div>
 	<div class="chapter">
 		<h1>Start here</h1>

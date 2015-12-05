@@ -10,11 +10,15 @@ import random
 word_ranks = defaultdict(int)
 for word, count in csv.reader(open('20knouns.txt'), delimiter='\t'):
     word_ranks[word.decode('utf-8').strip().lower()] += int(count)
-words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)][:5000]
-words_by_length = defaultdict(list)
-for word in words:
-    words_by_length[len(word)].append(word)
+words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)]
 alphabet = set("abcdefghijklmnopqrstuvwxyz")
+
+
+def separate_by_length(words):
+    words_by_length = defaultdict(list)
+    for word in words:
+        words_by_length[len(word)].append(word)
+    return words_by_length
 
 
 def make_pattern(word, ch):
@@ -76,11 +80,28 @@ def build_graph(pattern, words, letters, wrong=0):
 def build_complete_graph(words):
     graph = {}
     total_pruned = []
-    for length, words in words_by_length.iteritems():
+    for length, words in separate_by_length(words).iteritems():
         pattern = u'_' * length
         graph[pattern], pruned = build_graph(pattern, words, alphabet)
         total_pruned.extend(pruned)
     return graph, total_pruned
+
+
+def augment_graph(graph, words):
+    """Adds any words to the graph that can be added without inserting new sections."""
+    added = []
+    for word in words:
+        pattern = u'_' * len(word)
+        node = graph[pattern]
+        while node.guess != '':
+            pattern = combine_patterns(pattern, make_pattern(word, node.guess))
+            if pattern not in node.value:
+                # We can add this word without creating a new section
+                node.value[pattern] = Node('', word)
+                added.append(word)
+                break
+            node = node.value[pattern]
+    return added
 
 
 def get_entry_value(graph, node_map, subnode_key):
@@ -123,12 +144,16 @@ def produce_complete_book_data(graph):
     return sections, lengths
 
 
-def book():
+def book(count):
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.getcwd()))
     template = env.get_template("book.html")
-    graph, pruned = build_complete_graph(words)
+    graph, pruned = build_complete_graph(words[:count])
     if pruned:
         logging.warn("Pruned %d words due to too many wrong guesses: %r", len(pruned), pruned)
+    added = augment_graph(graph, words[count:])
+    if added:
+        added.sort(key=lambda w:(len(w), w))
+        logging.info("Added %d words to existing sections: %r", len(added), added)
     sections, lengths = produce_complete_book_data(graph)
     print template.render({
         'lengths': lengths,
@@ -159,4 +184,4 @@ def hangman():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    book()
+    book(5000)
