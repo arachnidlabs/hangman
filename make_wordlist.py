@@ -20,6 +20,7 @@ parser.add_argument('--show_counts', action='store_true', default=False, help="I
 parser.add_argument('--minlength', type=int, default=None, help="Minimum word length")
 parser.add_argument('--maxlength', type=int, default=None, help="Maximum word length")
 parser.add_argument('--accept_re', type=str, default='', help="Include only words matching this regex")
+parser.add_argument('--normalise', action='store_true', default=False, help="Normalise (trim and lowercase) words")
 parser.add_argument('files', nargs='+', help="Files to process")
 
 
@@ -85,6 +86,11 @@ def most_popular(words, n):
   return heap
 
 
+def normalise_words(words):
+  for count, word in words:
+    yield (count, word.strip().lower())
+
+
 def main(args):
   words = get_words(args.files, args.minyear, args.maxyear, set(args.pos))
   if args.min_popularity:
@@ -93,6 +99,8 @@ def main(args):
     words = filter_by_length(words, args.minlength, args.maxlength)
   if args.accept_re:
     words = filter_by_re(words, args.accept_re)
+  if args.normalise:
+    words = normalise_words(words)
   if args.count:
     words = most_popular(words, args.count)
   if args.show_counts:

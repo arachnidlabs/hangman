@@ -248,7 +248,7 @@
 							{% for entry in row %}
 								{% if entry %}
 									<th>
-										{% if entry.pattern %}
+										{% if entry.pattern != section.pattern %}
 											<span class="pattern-text">{{entry.pattern}}</span>
 										{% else %}
 											No '{{section.guess}}'
