@@ -47,7 +47,6 @@ def score_grouping(subgroups, pattern):
         len(wrong_words),                                               # Minimise number of wrong words
         sum(word_ranks[word] for word in wrong_words),                  # Avoid popular wrong words
         -len(subgroups),                                                # Maximise branching factor
-#        max(len(v) for v in subgroups.values()),                       # Maximum number of words in any group
     )
 
 def build_graph(pattern, words, letters, wrong=0):
