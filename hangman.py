@@ -38,12 +38,15 @@ Node = namedtuple('Node', ['guess', 'value'])
 Entry = namedtuple('Entry', ['pattern', 'is_leaf', 'value'])
 Section = namedtuple('Section', ['id', 'pattern', 'wrong', 'guess', 'entries'])
 
+def empty_pattern(pattern):
+    return u'_' * len(pattern)
 
 def score_grouping(subgroups, pattern):
+    wrong_words = subgroups.get(empty_pattern(pattern), ())
     return (
-#        len(subgroups.get(pattern, ())),
-        sum(word_ranks[word] for word in subgroups.get(pattern, ())),
-        max(len(v) for v in subgroups.values())
+        len(wrong_words),                                               # Minimise number of wrong words
+        sum(word_ranks[word] for word in wrong_words),                  # Avoid popular wrong words
+        -len(subgroups),                                                # Maximise branching factor
     )
 
 def build_graph(pattern, words, letters, wrong=0):
@@ -74,6 +77,20 @@ def build_graph(pattern, words, letters, wrong=0):
             wrong + 1 if new_pattern == pattern else wrong)
         total_pruned.extend(pruned)
 
+    # This guess might end up not contributing anything,
+    # if we end up pruning things away.
+    if len(subnodes) == 1:
+        return subnodes.values()[0], total_pruned
+
+    # Due to pruning, occasionally you end up with a subtree
+    # with only one usable word in it.  Lift it back up.
+    if len(subnodes) == 2:
+        (pattern1, node1), (pattern2, node2) = subnodes.items()
+        if pattern1 == pattern and node1.value is None:
+            return node2, total_pruned
+        if pattern2 == pattern and node2.value is None:
+            return node1, total_pruned
+
     return Node(ch, subnodes), total_pruned
 
 
@@ -91,7 +108,7 @@ def augment_graph(graph, words):
     """Adds any words to the graph that can be added without inserting new sections."""
     added = []
     for word in words:
-        pattern = u'_' * len(word)
+        pattern = empty_pattern(word)
         node = graph[pattern]
         while node.guess != '':
             pattern = combine_patterns(pattern, make_pattern(word, node.guess))
@@ -150,11 +167,14 @@ def book(count, extended_count):
     graph, pruned = build_complete_graph(words[:count])
     if pruned:
         logging.warn("Pruned %d words due to too many wrong guesses: %r", len(pruned), pruned)
+        logging.warn("Pruned words are worth: %s", sum(word_ranks[word] for word in pruned))
     added = augment_graph(graph, words[count:extended_count + count])
     if added:
         added.sort(key=lambda w:(len(w), w))
         logging.info("Added %d words to existing sections", len(added))
     sections, lengths = produce_complete_book_data(graph)
+    logging.info("Created %d sections", len(sections))
+    logging.info("lengths: %s", [(a, b, b*100.0/len(sections)) for (a,b) in lengths])
     bookdata = template.render({
         'lengths': lengths,
         'sections': sections,
