@@ -205,7 +205,7 @@
 		<p>Each section starts with the letter the book is guessing. If the book guessed a letter that is in your word, fill in that letter on your piece of paper in all the places it belongs.</p>
 		<p>Next, look at the table in your section. Each entry in the table shows one possible outcome of the book's guess. Compare the entries in the table to your piece of paper. If you see a matching entry, follow the instructions on the right; usually this means turning to another section and repeating the process for another letter; sometimes the book will outright guess your whole word. If the book guesses your word, it wins!</p>
 		<p>If the book guessed a letter that's not in your word, turn to the section listed at the beginning of the table. For example, if the book guessed "e", turn to the section labelled "no 'e'" in the table.</p>
-		<p>If the table doesn't contain the entry you need, you've thought of a word that the book doesn't know about - you win!</p>
+		<p>If the table doesn't contain the entry you need, or the book guesses wrong, turn to section <b><a href="#{{sections|length + 1}}">§{{sections|length + 1}}</a></b>.</p>
 	</div>
 	<div class="chapter">
 		<h1>How this book was written</h1>
@@ -245,12 +245,12 @@
 				<thead><tr><th colspan="{{columns*2}}">
 					<table><tr>
 						<td class="section-id"><h2><a name="{{section.id}}">{{section.id}}</a></h2></td>
-						<td class="section-pattern">							<img src="hangman{{section.wrong}}.svg" type="image/svg+xml">
+						<td class="section-pattern">							<img src="http://www.arachnidlabs.com/hangman/hangman{{section.wrong}}.svg" type="image/svg+xml">
  <span class="pattern-text">{{section.pattern}}</span></td>
 					</tr></table>
 				</th></tr></thead>
 				<tbody class="section-body">
-					<tr><td class="guess" colspan="{{columns*2}}">I guess {{section.guess}}.</td></tr>
+					<tr><td class="guess" colspan="{{columns*2}}">I guess <span class="pattern-text">{{section.guess}}</span>.</td></tr>
 					{% for row in section.entries|batch(columns, '') %}
 						<tr>
 							{% for entry in row %}
@@ -268,7 +268,7 @@
 										{% if entry.value %}
 											<td>I guess <span class="guess-text">{{entry.value}}</span>!</td>
 										{% else %}
-											<td>You win!</td>
+											<td>go to <b><a href="#{{sections|length + 1}}">§{{sections|length + 1}}</a></b></td>
 										{% endif %}
 									{% else %}
 										<td>go to <b><a href="#{{entry.value}}">§{{entry.value}}</a></b></td>
@@ -282,6 +282,17 @@
 				</tbody>
 			</table>
 		{% endfor %}
+		<table class="section">
+			<thead><tr><th>
+				<table><tr>
+					<td class="section-id"><h2><a name="{{sections|length + 1}}">{{sections|length + 1}}</a></h2></td>
+					<td class="section-pattern"></td>
+				</tr></table>
+			</th></tr></thead>
+			<tbody class="section-body">
+				<tr><td class="guess" style="text-align: center;"><img src="http://www.arachnidlabs.com/hangman/hangman6.svg" style="width: 3in;" type="image/svg+xml"><br><b>You win!</b></td></tr>
+			</tbody>
+		</table>
 	</div>
 </body>
 </html>
