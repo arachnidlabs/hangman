@@ -183,4 +183,4 @@ def book(count, extended_count):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    book(4000, 22500)
+    book(4000, 15600)
