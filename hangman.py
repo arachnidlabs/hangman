@@ -8,7 +8,7 @@ import random
 
 
 word_ranks = defaultdict(int)
-for word, count in csv.reader(open('20knouns.txt'), delimiter='\t'):
+for word, count in csv.reader(open('50knouns.txt'), delimiter='\t'):
     word_ranks[word.decode('utf-8').strip().lower()] += int(count)
 words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)]
 alphabet = set("abcdefghijklmnopqrstuvwxyz")
@@ -121,7 +121,7 @@ def get_entry_value(graph, node_map, subnode_key):
 def produce_book_data(pattern, node, start_id=1, wrong=0):
     entries = []
     subsections = []
-    for subpattern, subnode in sorted(node.value.iteritems()):
+    for subpattern, subnode in sorted(node.value.iteritems(), key=lambda (k, v): (k!=pattern, k)):
         if subnode.guess == '':
             entries.append(Entry(subpattern, True, subnode.value))
         else:
@@ -153,7 +153,7 @@ def book(count):
     added = augment_graph(graph, words[count:])
     if added:
         added.sort(key=lambda w:(len(w), w))
-        logging.info("Added %d words to existing sections: %r", len(added), added)
+        logging.info("Added %d words to existing sections", len(added))
     sections, lengths = produce_complete_book_data(graph)
     print template.render({
         'lengths': lengths,
