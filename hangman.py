@@ -6,10 +6,16 @@ import math
 import os
 import random
 
-
+logging.basicConfig(level=logging.DEBUG)
+sowpods = set(word.decode('utf-8').strip().lower() for word in open('sowpods.txt'))
 word_ranks = defaultdict(int)
+culled = 0
 for word, count in csv.reader(open('50knouns.txt'), delimiter='\t'):
-    word_ranks[word.decode('utf-8').strip().lower()] += int(count)
+    if word not in sowpods:
+        culled += 1
+    else:
+        word_ranks[word.decode('utf-8').strip().lower()] += int(count)
+logging.info("Culled %d nonwords", culled)
 words = [word for word, count in sorted(word_ranks.iteritems(), key=lambda (w,c): c, reverse=True)]
 alphabet = set("abcdefghijklmnopqrstuvwxyz")
 
@@ -182,5 +188,4 @@ def book(count, extended_count):
     print bookdata
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    book(4000, 15350)
+    book(4000, 11500)
