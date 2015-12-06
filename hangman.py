@@ -77,6 +77,20 @@ def build_graph(pattern, words, letters, wrong=0):
             wrong + 1 if new_pattern == pattern else wrong)
         total_pruned.extend(pruned)
 
+    # This guess might end up not contributing anything,
+    # if we end up pruning things away.
+    if len(subnodes) == 1:
+        return subnodes.values()[0], total_pruned
+
+    # Due to pruning, occasionally you end up with a subtree
+    # with only one usable word in it.  Lift it back up.
+    if len(subnodes) == 2:
+        (pattern1, node1), (pattern2, node2) = subnodes.items()
+        if pattern1 == pattern and node1.value is None:
+            return node2, total_pruned
+        if pattern2 == pattern and node2.value is None:
+            return node1, total_pruned
+
     return Node(ch, subnodes), total_pruned
 
 
