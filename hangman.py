@@ -38,12 +38,16 @@ Node = namedtuple('Node', ['guess', 'value'])
 Entry = namedtuple('Entry', ['pattern', 'is_leaf', 'value'])
 Section = namedtuple('Section', ['id', 'pattern', 'wrong', 'guess', 'entries'])
 
+def empty_pattern(pattern):
+    return u'_' * len(pattern)
 
 def score_grouping(subgroups, pattern):
+    wrong_words = subgroups.get(empty_pattern(pattern), ())
     return (
-#        len(subgroups.get(pattern, ())),
-        sum(word_ranks[word] for word in subgroups.get(pattern, ())),
-        max(len(v) for v in subgroups.values())
+        len(wrong_words),                                               # Minimise number of wrong words
+        sum(word_ranks[word] for word in wrong_words),                  # Avoid popular wrong words
+        -len(subgroups),                                                # Maximise branching factor
+#        max(len(v) for v in subgroups.values()),                       # Maximum number of words in any group
     )
 
 def build_graph(pattern, words, letters, wrong=0):
@@ -91,7 +95,7 @@ def augment_graph(graph, words):
     """Adds any words to the graph that can be added without inserting new sections."""
     added = []
     for word in words:
-        pattern = u'_' * len(word)
+        pattern = empty_pattern(word)
         node = graph[pattern]
         while node.guess != '':
             pattern = combine_patterns(pattern, make_pattern(word, node.guess))
