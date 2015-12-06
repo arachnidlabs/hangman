@@ -144,44 +144,23 @@ def produce_complete_book_data(graph):
     return sections, lengths
 
 
-def book(count):
+def book(count, extended_count):
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.getcwd()))
     template = env.get_template("book.html")
     graph, pruned = build_complete_graph(words[:count])
     if pruned:
         logging.warn("Pruned %d words due to too many wrong guesses: %r", len(pruned), pruned)
-    added = augment_graph(graph, words[count:])
+    added = augment_graph(graph, words[count:extended_count + count])
     if added:
         added.sort(key=lambda w:(len(w), w))
         logging.info("Added %d words to existing sections", len(added))
     sections, lengths = produce_complete_book_data(graph)
-    print template.render({
+    bookdata = template.render({
         'lengths': lengths,
         'sections': sections,
     }).encode('utf-8')
-
-def hangman():
-    length = int(raw_input("Number of letters? "))
-    template = u'_' * length
-    guesses = 0
-
-    while True:
-        guess, new_templates = graph[guesses, template]
-        new_templates = sorted(list(new_templates))
-        if guess == '':
-            print "I guess %s!" % (new_templates[0])
-            return
-        print "I guess '%s'" % (guess,)
-        for i, new_template in enumerate(new_templates):
-            print "%d) %s" % (i, new_template)
-        idx = int(raw_input("> "))
-        template = new_templates[idx]
-        if '_' not in template:
-            print "I win!"
-            return
-        guesses += 1
-
+    print bookdata
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    book(5000)
+    book(4000, 22500)
