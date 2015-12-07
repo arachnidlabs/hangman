@@ -220,7 +220,7 @@
 		<p>Next, take each word and pick out just the 'e's to make a pattern. So, <span class="guess-text">eel</span> becomes <span class="pattern-text">ee_</span>, and <span class="guess-text">flame</span> becomes <span class="pattern-text">____e</span>. If the word doesn't contain any 'e's, the pattern is all blanks - so <span class="guess-text">cabin</span> is <span class="pattern-text">_____</span>. Group each word by the pattern it makes, so both <span class="guess-text">smile</span> and <span class="guess-text">flame</span> are grouped under <span class="pattern-text">____e</span>.</p>
 		<p>Now we've got enough information to build section 1: we know what letter to guess, and we know the groups that the words in our dictionary form, which make up the entries in the table.</p>
 		<p>To generate the next set of sections, we use recursion: we take each group of words we identified in the previous step, and repeat the whole process all over again: pick a letter to guess, and group the words again based on that letter. This process repeats over and over for each group, sub-group, sub-sub-group, and so on, until we've processed the entire set of words into sections. Print and bind it into a book, and you're done!</p>
-		<p>If you'd like to experiement with this yourself, the source code and word lists we used to generate this book are available online, at https://github.com/arachnidlabs/hangman/. Enjoy!</p>
+		<p>If you'd like to experiment with this yourself, the source code and word lists we used to generate this book are available online, at https://github.com/arachnidlabs/hangman/. Enjoy!</p>
 	</div>
 	<div class="chapter">
 		<h1>Start here</h1>
