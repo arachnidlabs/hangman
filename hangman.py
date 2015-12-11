@@ -50,6 +50,7 @@ def empty_pattern(pattern):
 def score_grouping(subgroups, pattern):
     wrong_words = subgroups.get(empty_pattern(pattern), ())
     return (
+        len(subgroups) == 1,                                            # Avoid meaningless guesses
         len(wrong_words),                                               # Minimise number of wrong words
         sum(word_ranks[word] for word in wrong_words),                  # Avoid popular wrong words
         -len(subgroups),                                                # Maximise branching factor
@@ -82,11 +83,6 @@ def build_graph(pattern, words, letters, wrong=0):
             letters - set([ch]),
             wrong + 1 if new_pattern == pattern else wrong)
         total_pruned.extend(pruned)
-
-    # This guess might end up not contributing anything,
-    # if we end up pruning things away.
-    if len(subnodes) == 1:
-        return subnodes.values()[0], total_pruned
 
     # Due to pruning, occasionally you end up with a subtree
     # with only one usable word in it.  Lift it back up.
