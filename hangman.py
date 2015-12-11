@@ -163,9 +163,18 @@ def produce_complete_book_data(graph):
     return sections, lengths
 
 
+def write_wordlist(inwords, pruned, added):
+    words = set(inwords).difference(pruned).union(added)
+    out = open('hangman_wordlist.txt', 'w')
+    for word in sorted(words):
+        out.write(word + "\n")
+    out.close()
+
+
 def book(count, extended_count):
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.getcwd()))
     template = env.get_template("book.html")
+    inwords = words[:count]
     graph, pruned = build_complete_graph(words[:count])
     if pruned:
         logging.warn("Pruned %d words due to too many wrong guesses: %r", len(pruned), pruned)
@@ -174,6 +183,7 @@ def book(count, extended_count):
     if added:
         added.sort(key=lambda w:(len(w), w))
         logging.info("Added %d words to existing sections", len(added))
+    write_wordlist(inwords, pruned, added)
     sections, lengths = produce_complete_book_data(graph)
     logging.info("Created %d sections", len(sections))
     logging.info("lengths: %s", [(a, b, b*100.0/len(sections)) for (a,b) in lengths])
